@@ -1,4 +1,4 @@
-package tsubasago
+package tsu
 
 func Init() {
 	dataMap = make(map[int][]Point)

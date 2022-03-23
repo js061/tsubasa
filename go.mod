@@ -1,4 +1,4 @@
-module github.com/tsubasago
+module github.com/tsu
 
 go 1.17
 

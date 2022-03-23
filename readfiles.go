@@ -1,4 +1,4 @@
-package tsubasago
+package tsu
 
 import (
 	"fmt"
