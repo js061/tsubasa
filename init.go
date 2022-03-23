@@ -6,6 +6,9 @@ func Init(username string, password_ string) {
 	password = password_
 
 	InitMatrix()
+
+	NCPU := getNumCPU()
+	pairWindowsList = make([][]BasicWindowResult, NCPU)
 }
 
 func InitMatrix() {

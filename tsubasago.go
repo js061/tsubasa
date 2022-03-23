@@ -1,8 +1,9 @@
 package tsubasago
 
 import (
-	//"fmt"
 	"math"
+	"time"
+	"fmt"
 )
 
 func DirectCompute(thres float64, start int, end int) []int {
@@ -13,8 +14,11 @@ func DirectCompute(thres float64, start int, end int) []int {
   }*/
   InitMatrix()
   newDataMap := make(map[int][]Point)
+  t0 := time.Now()
   CutDataMap(&newDataMap, start, end)
 	networkConstructionNaiveParallel(&newDataMap, &matrix, thres)
+	elapsed := time.Since(t0)
+	fmt.Println("Time:", elapsed)
 	checkMatrix(&matrix)
 
 	return GetMatrix()
@@ -85,4 +89,15 @@ func GetRealMatrix() []float32 {
 
 func ResetSketch() {
 	DeleteSkecth(false)
+}
+
+func SketchInMem(granularity int) {
+	networkConstructionBWParallelSketchInMem(granularity)
+}
+
+func QueryInMem(thres float64, queryStart int, queryEnd int) []int {
+	networkConstructionBWParallelQueryInMem(queryStart, queryEnd, thres)
+	checkMatrix(&matrix)
+
+  return GetMatrix()
 }
