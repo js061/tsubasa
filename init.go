@@ -1,14 +1,16 @@
 package tsubasago
 
-func Init(username string, password_ string) {
+func Init() {
 	dataMap = make(map[int][]Point)
-	user = username
-	password = password_
-
 	InitMatrix()
-
 	NCPU := getNumCPU()
 	pairWindowsList = make([][]BasicWindowResult, NCPU)
+}
+
+func InitDB(username string, password_ string) {
+	user = username
+	password = password_
+	Init()
 }
 
 func InitMatrix() {

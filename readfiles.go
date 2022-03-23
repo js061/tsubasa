@@ -5,6 +5,7 @@ import (
 	"os"
 	"log"
 	"sort"
+	"github.com/cheggaaa/pb/v3"
 )
 
 func getFilesInDir(dirname string, filesLst *([]string)) {
@@ -26,10 +27,13 @@ func getFilesInDir(dirname string, filesLst *([]string)) {
 func ReadFiles(dirname string) error {
 	var files []string
 	getFilesInDir(dirname, &files)
-	fmt.Println(files)
+	fmt.Println("Reading files ... ")
+	bar := pb.StartNew(len(files))
 	for _, fn := range files {
 		AddDataFromFile(dirname + "/" + fn, "")
+		bar.Increment()
 	}
+	bar.Finish()
 
 	for location := range dataMap {
 		sort.Slice((dataMap)[location][:], func(i, j int) bool {
@@ -62,10 +66,13 @@ func ReadFileByRange(filename string, locationRangeFile string) {
 func ReadFilesByRange(dirname string, locationRangeFile string) error {
 	var files []string
 	getFilesInDir(dirname, &files)
-	fmt.Println(files)
+	fmt.Println("Reading files ... ")
+	bar := pb.StartNew(len(files))
 	for _, fn := range files {
 		AddDataFromFile(dirname + "/" + fn, locationRangeFile)
+		bar.Increment()
 	}
+	bar.Finish()
 
 	for location := range dataMap {
 		sort.Slice((dataMap)[location][:], func(i, j int) bool {

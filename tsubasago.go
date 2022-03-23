@@ -71,15 +71,15 @@ func GetMatrix() []int {
   return arr
 }
 
-func GetRealMatrix() []float32 {
-	realArr := make([]float32, len(realMatrix) * len(realMatrix))
+func GetRealMatrix() []float64 {
+	realArr := make([]float64, len(realMatrix) * len(realMatrix))
   index := 0
   for i := 0; i < len(realMatrix); i += 1 {
   	for j := 0; j < len(realMatrix); j += 1 {
   		if math.IsNaN(realMatrix[i][j]) {
-  			realArr[index] = float32(0.0)
+  			realArr[index] = float64(0.0)
   		} else {
-  			realArr[index] = float32(realMatrix[i][j])
+  			realArr[index] = float64(realMatrix[i][j])
   		}
   		index += 1
   	}

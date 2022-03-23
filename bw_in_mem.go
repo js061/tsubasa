@@ -4,6 +4,7 @@ import (
   "fmt"
   "time"
   "runtime"
+  "github.com/cheggaaa/pb/v3"
 )
 
 var pairWindowsList [][]BasicWindowResult
@@ -32,18 +33,20 @@ func doAllBWSketchInMem(NCPU int, granularity int) {
   listOfPairs := make([][]Pair, partitionsNum)
   partitionData(partitionsNum, &dataMap, &listOfPairs)
   // doPart
+  fmt.Println("Starting to sketch: ")
+	bar := pb.StartNew(partitionsNum)
   for i := 0; i < partitionsNum; i += 1 {
     go doPartBWSketchInMem(sem_1, i, &listOfPairs, granularity)
   }
 
   // Waiting for tasks to be finished
   for i := 0; i < partitionsNum; i += 1 {
+  	bar.Increment()
     <-sem_1
   }
   elapsed := time.Since(t0)
-  fmt.Println("Sketch time: ", elapsed)
-
-  fmt.Println("All tasks for sketching are finished.")
+  bar.Finish()
+  fmt.Println("FINISHED. Sketch time: ", elapsed)
 }
 
 /* DoPart for TSUBASA query */
@@ -86,15 +89,14 @@ func doAllBWQueryInMem(NCPU int, queryStart int, queryEnd int, thres float64) {
     <-sem
   }
   elapsed := time.Since(t0)
-  fmt.Println("Query time: ", elapsed)
-  fmt.Println("All tasks for querying are finished.")
+  fmt.Println("FINISHED: Query time: ", elapsed)
 }
 
 func networkConstructionBWParallelSketchInMem(granularity int) {
 
 	InitMatrix()
 	NCPU := getNumCPU()
-  fmt.Println("CPU Num: ", NCPU)
+  //fmt.Println("CPU Num: ", NCPU)
   runtime.GOMAXPROCS(NCPU)
 
   pairWindowsList = make([][]BasicWindowResult, NCPU)
@@ -104,7 +106,7 @@ func networkConstructionBWParallelSketchInMem(granularity int) {
 
 func networkConstructionBWParallelQueryInMem(queryStart int, queryEnd int, thres float64) {
 	NCPU := getNumCPU()
-  fmt.Println("CPU Num: ", NCPU)
+  //fmt.Println("CPU Num: ", NCPU)
   runtime.GOMAXPROCS(NCPU)
   doAllBWQueryInMem(NCPU, queryStart, queryEnd, thres)
 }
