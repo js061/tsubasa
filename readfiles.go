@@ -1,4 +1,4 @@
-package tsu
+package tsubasa
 
 import (
 	"fmt"
@@ -53,7 +53,7 @@ func ReadFile(filename string) {
 	}
 }
 
-func ReadFileByRange(filename string, locationRangeFile string) {
+func ReadFileByLocation(filename string, locationRangeFile string) {
 	AddDataFromFile(filename, locationRangeFile)
 
 	for location := range dataMap {
@@ -63,7 +63,7 @@ func ReadFileByRange(filename string, locationRangeFile string) {
 	}
 }
 
-func ReadFilesByRange(dirname string, locationRangeFile string) error {
+func ReadFilesByLocation(dirname string, locationRangeFile string) error {
 	var files []string
 	getFilesInDir(dirname, &files)
 	fmt.Println("Reading files ... ")

@@ -1,4 +1,4 @@
-package tsu
+package tsubasa
 
 import (
   "runtime"
@@ -18,6 +18,7 @@ var password string = ""
 var dataMap map[int][]Point
 var matrix [][]int
 var realMatrix [][]float64
+var basicWindowSize int
 
 const (
   // const vars for db
@@ -567,6 +568,41 @@ func GetLatitudesIdx() []int {
 /* Get the longitudes */
 func GetLongitudesIdx() []int {
   return realLonIdx
+}
+
+/* Get the length of dataMap */
+func GetTimeSeriesNum() int {
+  return len(dataMap)
+}
+
+/* Get length of time series */
+func GetTimeSeriesLength() int {
+  prevSize := -1
+  size := 0
+  for key := range dataMap {
+    size = len(dataMap[key])
+    if prevSize < 0 {
+      prevSize = size
+    } else {
+      if prevSize != size {
+        fmt.Println("WARNING: time series is unaligned.")
+        break
+      } else {
+        prevSize = size
+      }
+    }
+  }
+  return size
+}
+
+/* Set Basic Window Size */
+func SetBasicWindowSize(size int) {
+  basicWindowSize = size
+}
+
+/* Get Basic Window Size */
+func GetBasicWindowSize() int {
+  return basicWindowSize
 }
 
 /* Get the information of dataMap */

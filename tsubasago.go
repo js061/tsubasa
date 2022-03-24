@@ -1,17 +1,14 @@
-package tsu
+package tsubasa
 
 import (
 	"math"
 	"time"
 	"fmt"
+	"sort"
 )
 
 func DirectCompute(thres float64, start int, end int) []int {
 	// Matrix initiation
-  /*matrix := make([][]int, len(dataMap))
-  for i := range matrix {
-    matrix[i] = make([]int, len(dataMap))
-  }*/
   InitMatrix()
   newDataMap := make(map[int][]Point)
   t0 := time.Now()
@@ -24,32 +21,13 @@ func DirectCompute(thres float64, start int, end int) []int {
 	return GetMatrix()
 }
 
-/*func Compute(thres float64, start int, end int, granularity int) []int {
-	// Matrix initiation
-  matrix := make([][]int, len(dataMap))
-  for i := range matrix {
-    matrix[i] = make([]int, len(dataMap))
-  }
-
-	//networkConstructionBW(&dataMap, &matrix, thres, granularity, 1000, 1000, false, 1.0, start, end)
-	var sketchDurations []string = make([]string, getNumCPU()-1)
-  var queryDurations []string = make([]string, getNumCPU()-1)
-  var queryReadTime []float64 = make([]float64, getNumCPU()-1)
-
-	networkConstructionBWParallelSketch(&dataMap, granularity, 1000, false, 1.0, &sketchDurations)
-	networkConstructionBWParallelQuery(&dataMap, &matrix, thres, granularity, 1000, false, start, end, &queryDurations, &queryReadTime)
-	DeleteSkecth(false)
-	checkMatrix(&matrix)
-
-	return GetMatrix()
-}*/
-
-func Sketch(granularity int) {
+func SketchInDB() {
+	granularity := basicWindowSize
 	var sketchDurations []string = make([]string, getNumCPU()-1)
   networkConstructionBWParallelSketch(&dataMap, granularity, 1000, false, 1.0, &sketchDurations)
 }
 
-func Query(thres float64, start int, end int, granularity int) []int {
+func QueryInDB(thres float64, start int, end int, granularity int) []int {
 	InitMatrix()
 	var queryDurations []string = make([]string, getNumCPU()-1)
   var queryReadTime []float64 = make([]float64, getNumCPU()-1)
@@ -91,13 +69,38 @@ func ResetSketch() {
 	DeleteSkecth(false)
 }
 
-func SketchInMem(granularity int) {
-	networkConstructionBWParallelSketchInMem(granularity)
+func Sketch() string {
+	return networkConstructionBWParallelSketchInMem(basicWindowSize)
 }
 
-func QueryInMem(thres float64, queryStart int, queryEnd int) []int {
+func Query(thres float64, queryStart int, queryEnd int) []int {
 	networkConstructionBWParallelQueryInMem(queryStart, queryEnd, thres)
 	checkMatrix(&matrix)
-
   return GetMatrix()
+}
+
+/* Get realMatrix */
+func GetCorrelationMatrix(queryStart int, length int) []float64 {
+	networkConstructionBWParallelQueryInMem(queryStart, queryStart + length, 0.7)
+	return GetRealMatrix()
+}
+
+/* Get matrix */
+func GetNetworkUnweighted(queryStart int, length int, thres float64) []int {
+	networkConstructionBWParallelQueryInMem(queryStart, queryStart + length, thres)
+	return GetMatrix()
+}
+
+func GetNetworkWeightedRatio(queryStart int, length int, rho float64) []float64 {
+	list := GetCorrelationMatrix(queryStart, length)
+	list_sorted := make([]float64, len(list))
+	copy(list_sorted, list)
+	sort.Float64s(list_sorted)
+	var thres float64 = list_sorted[int(float64(len(list)) * (1 - rho))]
+	for j := 0; j < len(list); j += 1 {
+		if list[j] < thres {
+			list[j] = 0.0
+		}
+	}
+	return list
 }

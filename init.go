@@ -1,10 +1,11 @@
-package tsu
+package tsubasa
 
 func Init() {
 	dataMap = make(map[int][]Point)
 	InitMatrix()
 	NCPU := getNumCPU()
 	pairWindowsList = make([][]BasicWindowResult, NCPU)
+	SetBasicWindowSize(-1)
 }
 
 func InitDB(username string, password_ string) {

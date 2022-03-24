@@ -1,4 +1,4 @@
-package tsu
+package tsubasa
 
 import (
   "fmt"
@@ -27,7 +27,6 @@ func doPartBWSketchInMem(sem_1 chan int, taskNum int, listOfPairs *([][]Pair), g
 
 /* DoAll for TSUBASA sketch */
 func doAllBWSketchInMem(NCPU int, granularity int) {
-	t0 := time.Now()
 	partitionsNum := NCPU
   sem_1 := make(chan int, partitionsNum)
   listOfPairs := make([][]Pair, partitionsNum)
@@ -44,9 +43,8 @@ func doAllBWSketchInMem(NCPU int, granularity int) {
   	bar.Increment()
     <-sem_1
   }
-  elapsed := time.Since(t0)
   bar.Finish()
-  fmt.Println("FINISHED. Sketch time: ", elapsed)
+  fmt.Println("Sketch FINISHED.")
 }
 
 /* DoPart for TSUBASA query */
@@ -89,10 +87,10 @@ func doAllBWQueryInMem(NCPU int, queryStart int, queryEnd int, thres float64) {
     <-sem
   }
   elapsed := time.Since(t0)
-  fmt.Println("FINISHED: Query time: ", elapsed)
+  fmt.Println("Query FINISHED. Time:", elapsed)
 }
 
-func networkConstructionBWParallelSketchInMem(granularity int) {
+func networkConstructionBWParallelSketchInMem(granularity int) string {
 
 	InitMatrix()
 	NCPU := getNumCPU()
@@ -100,8 +98,10 @@ func networkConstructionBWParallelSketchInMem(granularity int) {
   runtime.GOMAXPROCS(NCPU)
 
   pairWindowsList = make([][]BasicWindowResult, NCPU)
-
+  t0 := time.Now()
   doAllBWSketchInMem(NCPU, granularity)
+  elapsed := time.Since(t0)
+  return fmt.Sprintf("%v", elapsed)
 }
 
 func networkConstructionBWParallelQueryInMem(queryStart int, queryEnd int, thres float64) {
@@ -110,10 +110,5 @@ func networkConstructionBWParallelQueryInMem(queryStart int, queryEnd int, thres
   runtime.GOMAXPROCS(NCPU)
   doAllBWQueryInMem(NCPU, queryStart, queryEnd, thres)
 }
-
-/* Construct network for TSUBASA with parallel computing */
-/*func networkConstructionBWParallelInMem() {
-
-}*/
 
 

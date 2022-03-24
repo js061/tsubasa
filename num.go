@@ -1,4 +1,4 @@
-package tsu
+package tsubasa
 
 import (
   "fmt"
@@ -31,7 +31,7 @@ func Slide(start int, cnt int, qsize int, bwsize int, offset int, rho float64) [
 
 	for i := 0; i < cnt; i += 1 {
 		end = start + int(qsize/bwsize)
-		QueryInMem(0.7, start, end)
+		Query(0.7, start, end)
 		start += int(offset/bwsize)
 		list := GetRealMatrix()
 		list_sorted := make([]float64, len(list))
@@ -80,7 +80,7 @@ func getws(locations *([]int), ws *([]float64)) {
 	}
 }
 
-func GetTrans(arr []float64) float64 {
+func GetTransitivity(arr []float64) float64 {
 	rowNum := int(math.Sqrt(float64(len(arr))))
 	X := mat.NewDense(rowNum, rowNum, arr)
 	return getTrans(X)
