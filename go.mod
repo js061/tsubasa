@@ -1,4 +1,4 @@
-module github.com/tsubasa
+module github.com/js061/tsubasa
 
 go 1.17
 
