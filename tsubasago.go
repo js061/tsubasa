@@ -21,17 +21,17 @@ func DirectCompute(thres float64, start int, end int) []int {
 	return GetMatrix()
 }
 
-func SketchInDB() {
+func SketchInDB(writersNum int) {
 	granularity := basicWindowSize
 	var sketchDurations []string = make([]string, getNumCPU()-1)
-  networkConstructionBWParallelSketch(&dataMap, granularity, 1000, false, 1.0, &sketchDurations)
+  networkConstructionBWParallelSketch(&dataMap, granularity, 1000, false, 1.0, &sketchDurations, writersNum)
 }
 
-func QueryInDB(thres float64, start int, end int, granularity int) []int {
+func QueryInDB(thres float64, start int, end int, granularity int, writersNum int) []int {
 	InitMatrix()
 	var queryDurations []string = make([]string, getNumCPU()-1)
   var queryReadTime []float64 = make([]float64, getNumCPU()-1)
-  networkConstructionBWParallelQuery(&dataMap, &matrix, thres, granularity, 1000, false, start, end, &queryDurations, &queryReadTime)
+  networkConstructionBWParallelQuery(&dataMap, &matrix, thres, granularity, 1000, false, start, end, &queryDurations, &queryReadTime, writersNum)
   checkMatrix(&matrix)
 
   return GetMatrix()
@@ -65,8 +65,8 @@ func GetRealMatrix() []float64 {
   return realArr
 }
 
-func ResetSketch() {
-	DeleteSkecth(false)
+func ResetSketch(writersNum int) {
+	DeleteSkecth(false, writersNum)
 }
 
 func Sketch() string {

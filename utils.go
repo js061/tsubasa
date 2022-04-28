@@ -964,3 +964,14 @@ func getBatchesNum(partitionsNum int, listOfPairs *([][]Pair), blockSize int) in
   }
   return res
 }
+
+func getBatchesNumByWorkers(partitionsNum int, listOfPairs *([][]Pair), blockSize int, arr *([]int)) {
+  for i := 0; i < partitionsNum; i += 1 {
+    var length int = len((*listOfPairs)[i])
+    if length % blockSize == 0 {
+      (*arr)[i] = length / blockSize
+    } else {
+      (*arr)[i] = length / blockSize + 1
+    }
+  }
+}

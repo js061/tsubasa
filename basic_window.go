@@ -112,23 +112,48 @@ func writeDBFromChan(partitionsNum int, dataChan chan DataOfChannel, sem_2 chan 
 
 /* DoAll for TSUBASA sketch */
 func doAllBWSketch(partitionsNum int, dataMap *(map[int][]Point), listOfPairs *([][]Pair),
-  granularity int, writeBlockSize int, header string, isDFT bool, ratio float64, durations *([]string)) {
+  granularity int, writeBlockSize int, header string, isDFT bool, ratio float64, durations *([]string), writersNum int) {
 
   sem_1 := make(chan int, partitionsNum) // To signal parts are finsihed
-  sem_2 := make(chan int, 1)             // To signal writing is finished
+  sem_2 := make(chan int, writersNum)             // To signal writing is finished
 
   // Compute the number of data batches
-  batchesNum := getBatchesNum(partitionsNum, listOfPairs, writeBlockSize)
+  //batchesNum := getBatchesNum(partitionsNum, listOfPairs, writeBlockSize)
 
-  dataChan := make(chan DataOfChannel, batchesNum)
+  workersSize := make([]int, partitionsNum)
+  getBatchesNumByWorkers(partitionsNum, listOfPairs, writeBlockSize, &workersSize)
+
+  arrChanSize := make([]int, writersNum)
+  chans := make([](chan DataOfChannel), writersNum)
+  workersCnt := 0
+  for i := 0; i < writersNum; i += 1 {
+    size := (int)(partitionsNum/writersNum)
+    if i == writersNum - 1 {
+      size += partitionsNum%writersNum
+    }
+    for j := workersCnt; j < workersCnt + size; j += 1 {
+      arrChanSize[i] += workersSize[j]
+    }
+    dataChan := make(chan DataOfChannel, arrChanSize[i])
+    chans[i] = dataChan
+  }
+
+  //dataChan := make(chan DataOfChannel, batchesNum)
 
   // doPart
+  writerIdex := 0
   for i := 0; i < partitionsNum; i += 1 {
-    go doPartBWSketch(sem_1, dataChan, i, listOfPairs, dataMap, granularity, writeBlockSize, header, isDFT, ratio, durations)
+    writerIdex = int(i/((int)(partitionsNum/writersNum)))
+    if writerIdex >= writersNum {
+      writerIdex = writersNum - 1
+    }
+    go doPartBWSketch(sem_1, chans[writerIdex], i, listOfPairs, dataMap, granularity, writeBlockSize, header, isDFT, ratio, durations)
   }
 
   // writer worker
-  go writeDBFromChan(partitionsNum, dataChan, sem_2, batchesNum)
+  for i := 0; i < writersNum; i += 1 {
+    go writeDBFromChan(partitionsNum, chans[i], sem_2, arrChanSize[i])
+  }
 
   // Waiting for tasks to be finished
   for i := 0; i < partitionsNum; i += 1 {
@@ -136,7 +161,7 @@ func doAllBWSketch(partitionsNum int, dataMap *(map[int][]Point), listOfPairs *(
   }
 
   // Waiting for writing to be finished
-  for i := 0; i < 1; i += 1 {
+  for i := 0; i < writersNum; i += 1 {
     <-sem_2
   }
 
@@ -241,7 +266,7 @@ func networkConstructionBWParallel(dataMap *(map[int][]Point), matrix *([][]int)
   if isDFT {
     header = pairsbwrdftheader
   }
-  doAllBWSketch(partitionsNum, dataMap, &listOfPairs, granularity, writeBlockSize, header, isDFT, ratio, sketchDurations)
+  doAllBWSketch(partitionsNum, dataMap, &listOfPairs, granularity, writeBlockSize, header, isDFT, ratio, sketchDurations, 1)
   elapsed := time.Since(t0)
   fmt.Println("Sketch time: ", elapsed)
 
@@ -277,12 +302,13 @@ func networkConstructionBWParallel(dataMap *(map[int][]Point), matrix *([][]int)
 }
 
 func networkConstructionBWParallelSketch(dataMap *(map[int][]Point), granularity int, 
-  writeBlockSize int, isDFT bool, ratio float64, sketchDurations *([]string)) {
+  writeBlockSize int, isDFT bool, ratio float64, sketchDurations *([]string), writersNum int) {
 
   NCPU := getNumCPU()
   //fmt.Println("CPU Num: ", NCPU)
-  partitionsNum := NCPU - 1
-  //fmt.Println("Partions Num: ", partitionsNum)
+  partitionsNum := NCPU - writersNum
+  fmt.Println("Partions Num: ", partitionsNum)
+  fmt.Println("Writers Num: ", writersNum)
   runtime.GOMAXPROCS(NCPU)
 
   // Create a new database
@@ -312,17 +338,17 @@ func networkConstructionBWParallelSketch(dataMap *(map[int][]Point), granularity
   if isDFT {
     header = pairsbwrdftheader
   }
-  doAllBWSketch(partitionsNum, dataMap, &listOfPairs, granularity, writeBlockSize, header, isDFT, ratio, sketchDurations)
+  doAllBWSketch(partitionsNum, dataMap, &listOfPairs, granularity, writeBlockSize, header, isDFT, ratio, sketchDurations, writersNum)
   elapsed := time.Since(t0)
   fmt.Println("Sketch time: ", elapsed)
 }
 
 func networkConstructionBWParallelQuery(dataMap *(map[int][]Point), matrix *([][]int), thres float64, granularity int, 
-	readBlockSize int, isDFT bool, queryStart int, queryEnd int, queryDurations *([]string), queryReadTime *([]float64)) {
+	readBlockSize int, isDFT bool, queryStart int, queryEnd int, queryDurations *([]string), queryReadTime *([]float64), writersNum int) {
 
   NCPU := getNumCPU()
   //fmt.Println("CPU Num: ", NCPU)
-  partitionsNum := NCPU - 1
+  partitionsNum := NCPU - writersNum
   //fmt.Println("Partions Num: ", partitionsNum)
   runtime.GOMAXPROCS(NCPU)
 
@@ -343,10 +369,10 @@ func networkConstructionBWParallelQuery(dataMap *(map[int][]Point), matrix *([][
   fmt.Println("Query time: ", elapsed)
 }
 
-func DeleteSkecth(isDFT bool) {
+func DeleteSkecth(isDFT bool, writersNum int) {
 	NCPU := getNumCPU()
   //fmt.Println("CPU Num: ", NCPU)
-  partitionsNum := NCPU - 1
+  partitionsNum := NCPU - writersNum
   //fmt.Println("Partions Num: ", partitionsNum)
   runtime.GOMAXPROCS(NCPU)
 
