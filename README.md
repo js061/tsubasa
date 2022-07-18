@@ -97,7 +97,7 @@ These functions are used to compute the intermediate statistics and the final co
 
 
 6. `ResetSketch(writersNum int) void`
-	> Reset to the initial state, which means clean all results after calling `SketchInDB(writersNum int) void`.
+	> Reset to the initial state, which means cleanning all results after calling `SketchInDB(writersNum int) void`.
 
 
 ## Example
@@ -107,15 +107,15 @@ func main() {
 	// Initialization
 	tsubasa.Init()
 
-	// Initialization
+	// Read data from NetCDF files
 	tsubasa.ReadFilesByLocation("../data.nc", "range.txt")
 
 	// Get time series length
 	length := tsubasa.GetTimeSeriesLength()
 
-	// Get time series length
+	// Set time series length
 	tsubasa.SetBasicWindowSize(30)
-	
+
 	tsubasa.Sketch()
 	tsubada.Query(0.75, 0, int(length/30) - 1)
 }
