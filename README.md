@@ -107,8 +107,8 @@ func main() {
 	// Initialization
 	tsubasa.Init()
 
-	// Read data from NetCDF files
-	tsubasa.ReadFilesByLocation("../data.nc", "range.txt")
+	// Read data from a NetCDF file
+	tsubasa.ReadFileByLocation("../data.nc", "range.txt")
 
 	// Get time series length
 	length := tsubasa.GetTimeSeriesLength()
