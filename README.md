@@ -113,7 +113,7 @@ func main() {
 	// Get time series length
 	length := tsubasa.GetTimeSeriesLength()
 
-	// Set time series length
+	// Set basic window size
 	tsubasa.SetBasicWindowSize(30)
 
 	tsubasa.Sketch()
